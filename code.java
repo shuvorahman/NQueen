@@ -50,7 +50,6 @@ public class Board {
 	
 	public boolean placeNQueensFC(int [][] Y, int[] X, int N, int i){		
 		if (i == N){
-			//printSolution();
 			numberOfSolution++;
 			System.out.println(Arrays.toString(X));
 			return true;
@@ -102,74 +101,85 @@ public class Board {
 		}
 	}
 	
-	public boolean placeNQueensMRV(int [][] X, int[] Y, int[] mrv, int[] flag, int N, int i){		
-		int temp1 = -1;
-		int temp2 = -1;
+	public boolean placeNQueensMRV(int [][] X, int[] Y, int[] mrv, int[] flag, int n, int i){	
 		
+		for(int j=0; j<n; j++){
+			System.out.println("row "+i);
+			if (X[i][j] == 0){
+				Y[i]= j;
+				System.out.println("col "+j);
+				System.out.println("queen done");
 		
-		for(int j = 0; j<N; j++){
-			int count = 0;
-			//System.out.println("row "+i);
-			if(X[i][j] == 0){
-				Y[i] = j;
-				//System.out.println("col "+j);
-				//System.out.println("queen done");
-				flag[i] = 1;//occupied
-				
-				for(int a= 0; a<N; a++){					
-					if(flag[a] == 1)	count++;			
-				}
-				
-				
-				System.out.println("count "+count);
-				if(count == N){
-					numberOfSolution++;
-					System.out.println(Arrays.toString(Y));
-					System.out.println("");
-					System.out.println("");
-					System.out.println("");
-					flag[N-1] = 0; 
+				setMRV(X,mrv,flag,i,j,n,Y);
+				if(check(Y,flag,n)){
+					resetMRV(X,mrv,flag,i,j,n,Y);
 					return true;
 				}
-				setMRV(X,mrv,flag,i,j,N);
-				System.out.println(Arrays.toString(mrv));
-				System.out.println(Arrays.toString(flag));
-				System.out.println(Arrays.toString(Y));
-				
-				for(int a = 0; a<N; a++){
-					if(flag[a] == 0){
-						if(mrv[a] > temp1){
-							temp1 = mrv[a];
-							temp2 = a;
-						}
-					}
-				}
-				placeNQueensMRV(X,Y,mrv,flag,N,temp2);
-				//unoccupied
-				reverseMRV(X,mrv,flag,i,j,N);
-				flag[i] = 0;
-				//System.out.println("flag "+i+"is"+flag[i]);
-			}	
-		}		
-		return false;		
-	}
-	public void setMRV(int[][] X, int[] mrv, int[] flag, int i, int j, int n){				
-		for(int a = 0; a<n; a++){
-			mrv[a] = 0;
-		}
-		for(int a = 0; a<n; a++){
-			if(flag[a]==0){
-				X[a][j]++;
-				//System.out.println("pruning down");
-				if(j-(a-i) >= 0){
-					X[a][j-(a-i)]++;
-					//System.out.println("pruning left");
-				}			
-				if(j+(a-i) < n){				
-					X[a][j+(a-i)]++;
-					//System.out.println("pruning right");
-				}	
+				placeNQueensMRV(X,Y,mrv,flag,n,largestArrayNumberIndex(mrv,flag,n));							
+				resetMRV(X,mrv,flag,i,j,n,Y);
 			}
+		}
+		return false;	
+	}
+	
+	public boolean check(int[] Y, int[] flag, int n){
+		int count = 0;
+		for(int k=0; k<n; k++){
+			if(flag[k] == 1){
+				count++;
+			}					
+		}
+		
+		if (count == n){
+			//printSolution();
+			numberOfSolution++;
+			System.out.println(Arrays.toString(Y));
+			System.out.println("");
+			System.out.println("");
+			return true;
+		}
+		return false;
+	}
+	
+	public void setMRV(int[][] X, int[] mrv, int[] flag, int i, int j, int n,int[] Y){	
+		flag[i] = 1;
+		System.out.println("pruning");
+		for(int a = i+1; a<n; a++){
+			X[a][j]++;
+			//System.out.println("pruning down");
+			if(j-(a-i) >= 0){
+				X[a][j-(a-i)]++;
+				//System.out.println("pruning lower left");
+			}			
+			if(j+(a-i) < n){				
+				X[a][j+(a-i)]++;
+				//System.out.println("pruning lower right");
+			}
+		}
+		
+		for(int a = i-1; a>=0; a--){
+			X[a][j]++;
+			//System.out.println("pruning up");
+			if(j-(i-a) >= 0){
+				X[a][j-(i-a)]++;
+				//System.out.println("pruning upper left");
+			}			
+			if(j+(i-a) < n){				
+				X[a][j+(i-a)]++;
+				//System.out.println("pruning upper right");
+			}
+		}
+		
+		countMRV(X,mrv,flag,n);
+		System.out.println(Arrays.toString(flag));
+		System.out.println(Arrays.toString(mrv));
+		System.out.println(Arrays.toString(Y));
+		
+	}
+	
+	public void countMRV(int[][] X, int[] mrv,int[] flag, int n){
+		for(int i = 0; i<n; i++){
+			mrv[i] = 0;
 		}
 		
 		for(int a = 0; a<n; a++){
@@ -180,34 +190,54 @@ public class Board {
 					}
 				}
 			}
-		}	
+		}
 	}
 	
-	public void reverseMRV(int[][] X, int[] mrv, int[] flag, int i, int j, int n){				
-		for(int a = 0; a<n; a++){
-			if(flag[a]==0){
-				X[a][j]--;
-				//System.out.println("back pruning down");
-				if(j-(a-i) >= 0){
-					X[a][j-(a-i)]--;
-					//System.out.println("back pruning left");
-				}			
-				if(j+(a-i) < n){				
-					X[a][j+(a-i)]--;
-					//System.out.println("back pruning right");
-				}	
+	public void resetMRV(int[][] X, int[] mrv, int[] flag, int i, int j, int n, int[] Y){				
+		flag[i] = 0;
+		System.out.println("rev pruning");
+		for(int a = i+1; a<n; a++){
+			X[a][j]--;
+			//System.out.println("rev pruning down");
+			if(j-(a-i) >= 0){
+				X[a][j-(a-i)]--;
+				//System.out.println("rev pruning lower left");
+			}			
+			if(j+(a-i) < n){				
+				X[a][j+(a-i)]--;
+				//System.out.println("rev pruning lower right");
 			}
 		}
 		
-		for(int a = 0; a<n; a++){
-			if(flag[a]==0){
-				for(int b = 0; b<n; b++){
-					if(X[a][b] != 0){
-						mrv[a]--;
-					}
-				}
+		for(int a = i-1; a>=0; a--){
+			X[a][j]--;
+			//System.out.println("rev pruning up");
+			if(j-(i-a) >= 0){
+				X[a][j-(i-a)]--;
+				//System.out.println("rev pruning upper left");
+			}			
+			if(j+(i-a) < n){				
+				X[a][j+(i-a)]--;
+				//System.out.println("rev pruning upper right");
 			}
-		}	
+		}
+		countMRV(X,mrv,flag,n);
+		System.out.println(Arrays.toString(flag));
+		System.out.println(Arrays.toString(mrv));
+		System.out.println(Arrays.toString(Y));
+	}
+	
+	public int largestArrayNumberIndex(int[] A, int[] flag, int n){
+		int temp = -1;
+		int index = -1;
+		for (int i = 0; i<n; i++){
+			if(flag[i] ==0 && A[i] > temp){
+				temp = A[i];
+				index = i;
+			}
+		}
+		System.out.println("row "+index+" has highest mrv val");
+		return index;
 	}
 	
 	public static void main(String[] args){
